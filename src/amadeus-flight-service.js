@@ -154,12 +154,16 @@ export class AmadeusFlightService {
         flightOrderId: bookingId,
       });
 
+      const seatmapData = seatmaps?.result?.data || [];
+      const seatmapDictionaries = seatmaps?.result?.dictionaries || {};
+
       console.log("Booking retrieved successfully");
 
       return {
         ...response.data,
         airlines,
-        seatmaps,
+        seatmaps: seatmapData,
+        seatmapLocations: seatmapDictionaries?.locations,
       };
     } catch (error) {
       console.error("Error retrieving booking:", error);
