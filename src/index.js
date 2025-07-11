@@ -4,37 +4,50 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import flightRoutes from './routes/flight-routes.js';
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-// Configure CORS for your React app
-app.use(cors({
-  origin: 'https://mudassirs-gds-mvp-frontend.vercel.app',
-  credentials: true,
-}));
-app.options('*', cors());
-
-// Set up session middleware BEFORE your routes
-app.use(session({
-  secret: process.env.SESSION_SECRECT, // Replace with a real secret key
-  resave: false,
-  saveUninitialized: false,
-  cookie: { 
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
+
+const allowedOrigins = [
+  'http://localhost:3000', // Local development
+  'https://mudassirs-gds-mvp-frontend.vercel.app' // Production
+];
+// Middleware
+// Configure CORS for your React app
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+app.options('*', cors());
+
+// Session: store in MongoDB
+app.use(session({
+  secret: process.env.SESSION_SECRECT, // set a strong secret in .env
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60, // 1 day
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // true on Vercel
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  }
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/flights', flightRoutes);
