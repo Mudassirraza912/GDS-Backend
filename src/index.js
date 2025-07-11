@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import flightRoutes from './routes/flight-routes.js';
+import authRoutes from './routes/auth-routes.js';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 // Load environment variables
@@ -50,6 +51,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+
+// Auth routes
+app.use('/api/auth', authRoutes);
+
 app.use('/api/flights', flightRoutes);
 
 // Basic route for testing
