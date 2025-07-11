@@ -12,7 +12,11 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 // Configure CORS for your React app
-app.use(cors());
+app.use(cors({
+  origin: 'https://mudassirs-gds-mvp-frontend.vercel.app',
+  credentials: true,
+}));
+app.options('*', cors());
 
 // Set up session middleware BEFORE your routes
 app.use(session({
