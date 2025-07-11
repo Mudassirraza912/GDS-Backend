@@ -12,10 +12,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 // Configure CORS for your React app
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true // Important for cookies/sessions
-}));
+app.use(cors());
 
 // Set up session middleware BEFORE your routes
 app.use(session({
