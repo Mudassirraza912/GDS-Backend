@@ -95,10 +95,13 @@ router.post('/book', authenticateJWT, async (req, res) => {
     }
     // Book the flight
     const booking = await flightService.bookFlight(pricedOfferDoc.offer.flightOffers[0], travelers);
+    // Prepare bookingId as a decoded string (URL-decoded)
+    let rawBookingId = booking.id || booking.bookingId || booking.pnr || booking.gdsBookingReference || (Date.now() + '');
+    let decodedBookingId = typeof rawBookingId === 'string' ? decodeURIComponent(rawBookingId) : rawBookingId;
     // Save booking to database
     const newBooking = new Booking({
       userId: req.user.userId,
-      bookingId: booking.id || booking.bookingId || booking.pnr || booking.gdsBookingReference || (Date.now() + ''),
+      bookingId: decodedBookingId,
       flightDetails: booking.flightDetails || {},
       status: booking.status || 'confirmed',
       rawResponse: booking,
@@ -106,7 +109,16 @@ router.post('/book', authenticateJWT, async (req, res) => {
     await newBooking.save();
     res.json(booking);
   } catch (error) {
-    res.status(error.status || 500).json({ error: error.message });
+    // res.status(error.status || 500).json({ error: error.message });
+    if (error?.response?.result?.errors?.[0]?.code === 34651) {
+      return res.status(400).json({
+        error: 'One or more selected flight segments are no longer available. Please search again and choose a fresh offer.'
+      });
+    }
+
+    return res.status(error?.response?.result?.errors?.[0]?.detail || error.status || 500).json({
+      error: error.message || 'Unexpected error during flight booking.'
+    });
   }
 });
 
@@ -118,6 +130,7 @@ router.get('/booking/:id', authenticateJWT, async (req, res) => {
     if (!id) {
       return res.status(400).json({ error: 'Booking ID is required' });
     }
+    console.log("Fetching booking details for ID:", id, "User ID:", req.user.userId);
     
     // Only allow user to access their own booking
     const booking = await Booking.findOne({ bookingId: id, userId: req.user.userId });
