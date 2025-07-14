@@ -98,8 +98,17 @@ export class AmadeusFlightService {
    */
   async bookFlight(flightOffer, travelers) {
     try {
-      console.log("Creating flight booking");
-
+      console.log(
+        "Creating flight booking",
+        JSON.stringify({
+          data: {
+            type: "flight-order",
+            flightOffers: [flightOffer],
+            travelers: travelers,
+          },
+        })
+      );
+      
       const response = await amadeus.booking.flightOrders.post(
         JSON.stringify({
           data: {

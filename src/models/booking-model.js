@@ -41,7 +41,6 @@ const bookingSchema = new mongoose.Schema({
   }
 });
 
-// Add indexes for common queries
 bookingSchema.index({ bookingId: 1 });
 bookingSchema.index({ userId: 1 });
 bookingSchema.index({ 'flightDetails.departureDate': 1 });

@@ -6,23 +6,20 @@ import flightRoutes from './routes/flight-routes.js';
 import authRoutes from './routes/auth-routes.js';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
 const allowedOrigins = [
-  'http://localhost:3000', // Local development
-  'https://mudassirs-gds-mvp-frontend.vercel.app' // Production
+  'http://localhost:3000', 
+  'https://mudassirs-gds-mvp-frontend.vercel.app' 
 ];
-// Middleware
-// Configure CORS for your React app
+
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
@@ -31,33 +28,31 @@ app.options('*', cors());
 
 // Session: store in MongoDB
 app.use(session({
-  secret: process.env.SESSION_SECRECT, // set a strong secret in .env
+  secret: process.env.SESSION_SECRECT, 
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
     collectionName: 'sessions',
-    ttl: 24 * 60 * 60, // 1 day
+    ttl: 24 * 60 * 60, 
   }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // true on Vercel
+    secure: process.env.NODE_ENV === 'production', 
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    maxAge: 24 * 60 * 60 * 1000, 
   }
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
 
 // Auth routes
 app.use('/api/auth', authRoutes);
 
 app.use('/api/flights', flightRoutes);
 
-// Basic route for testing
 app.get('/', (req, res) => {
   res.send('GDS Flight Booking API is running');
 });
